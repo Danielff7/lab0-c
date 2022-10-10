@@ -27,7 +27,8 @@ void q_free(struct list_head *l)
 {
     if (!l)
         return;
-    element_t *e, *prev = NULL;
+    element_t *e, *next;
+    /*element_t *e, *prev = NULL;
     for (e = list_entry(l->next, element_t, list); &e->list != l;
          e = list_entry(e->list.next, element_t, list)) {
         // list_for_each_entry (e, l, list) {
@@ -40,6 +41,9 @@ void q_free(struct list_head *l)
     if (prev) {
         free(prev->value);
         free(prev);
+    }*/
+    list_for_each_entry_safe (e, next, l, list) {
+        q_release_element(e);
     }
     free(l);
     // INIT_LIST_HEAD(l);
@@ -49,12 +53,9 @@ static element_t *element_new(char *s)
 {
     element_t *new_e = (element_t *) malloc(sizeof(element_t));
     if (new_e) {
-        size_t bufsize = strlen(s);
-        new_e->value = (char *) malloc((bufsize + 1) * sizeof(char));
-        if (new_e->value) {
-            (void *) strncpy(new_e->value, s, bufsize);
-            new_e->value[bufsize] = '\0';
-        } else {
+        new_e->value =
+            strdup(s);  //(char *) malloc((bufsize + 1) * sizeof(char));
+        if (!new_e->value) {
             free(new_e);
             new_e = NULL;
         }
