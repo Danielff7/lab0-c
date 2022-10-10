@@ -47,8 +47,6 @@ void q_free(struct list_head *l)
 
 static element_t *element_new(char *s)
 {
-    if (!s)
-        return NULL;
     element_t *new_e = (element_t *) malloc(sizeof(element_t));
     if (new_e) {
         size_t bufsize = strlen(s);
@@ -67,7 +65,7 @@ static element_t *element_new(char *s)
 /* Insert an element at head of queue */
 bool q_insert_head(struct list_head *head, char *s)
 {
-    if (!head)
+    if (!head || !s)
         return false;
     element_t *new_e = element_new(s);
     bool ret = false;
@@ -81,7 +79,7 @@ bool q_insert_head(struct list_head *head, char *s)
 /* Insert an element at tail of queue */
 bool q_insert_tail(struct list_head *head, char *s)
 {
-    if (!head)
+    if (!head || !s)
         return false;
     element_t *new_e = element_new(s);
     bool ret = false;
