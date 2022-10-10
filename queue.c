@@ -45,47 +45,51 @@ void q_free(struct list_head *l)
     // INIT_LIST_HEAD(l);
 }
 
+static element_t *element_new(char *s)
+{
+    if (!s)
+        return NULL;
+    element_t *new_e = (element_t *) malloc(sizeof(element_t));
+    if (new_e) {
+        size_t bufsize = strlen(s);
+        new_e->value = (char *) malloc((bufsize + 1) * sizeof(char));
+        if (new_e->value) {
+            (void *) strncpy(new_e->value, s, bufsize);
+            new_e->value[bufsize] = '\0';
+        } else {
+            free(new_e);
+            new_e = NULL;
+        }
+    }
+    return new_e;
+}
+
 /* Insert an element at head of queue */
 bool q_insert_head(struct list_head *head, char *s)
 {
-    if (!head || !s)
+    if (!head)
         return false;
-    element_t *new_e = (element_t *) malloc(sizeof(element_t));
-    if (!new_e)
-        return false;
-    size_t bufsize = strlen(s);
-    new_e->value = (char *) malloc((bufsize + 1) * sizeof(char));
-    if (!new_e->value) {
-        free(new_e);
-        return false;
+    element_t *new_e = element_new(s);
+    bool ret = false;
+    if (new_e) {
+        list_add(&new_e->list, head);
+        ret = true;
     }
-    (void *) strncpy(new_e->value, s, bufsize);
-    new_e->value[bufsize] = '\0';
-
-    list_add(&new_e->list, head);
-
-    return true;
+    return ret;
 }
 
 /* Insert an element at tail of queue */
 bool q_insert_tail(struct list_head *head, char *s)
 {
-    if (!head || !s)
+    if (!head)
         return false;
-    element_t *new_e = (element_t *) malloc(sizeof(element_t));
-    if (!new_e)
-        return false;
-    size_t bufsize = strlen(s);
-    new_e->value = (char *) malloc((bufsize + 1) * sizeof(char));
-    if (!new_e->value) {
-        free(new_e);
-        return false;
+    element_t *new_e = element_new(s);
+    bool ret = false;
+    if (new_e) {
+        list_add_tail(&new_e->list, head);
+        ret = true;
     }
-    (void *) strncpy(new_e->value, s, bufsize);
-    new_e->value[bufsize] = '\0';
-
-    list_add_tail(&new_e->list, head);
-    return true;
+    return ret;
 }
 
 /* Remove an element from head of queue */
