@@ -80,8 +80,6 @@ element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
     list_del_init(removed);
     element_t *r = list_entry(removed, element_t, list);
     if (sp) {
-        // size_t srclen = strlen(r->value);
-        // size_t copylen = (bufsize - 1 <= srclen) ? bufsize - 1 : srclen;
         (void *) strncpy(sp, r->value, bufsize - 1);
         sp[bufsize - 1] = '\0';
     }
@@ -97,8 +95,6 @@ element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
     list_del_init(removed);
     element_t *r = list_entry(removed, element_t, list);
     if (sp) {
-        // size_t srclen = strlen(r->value);
-        // size_t copylen = (bufsize - 1 <= srclen) ? bufsize - 1 : srclen;
         (void *) strncpy(sp, r->value, bufsize - 1);
         sp[bufsize - 1] = '\0';
     }
@@ -143,7 +139,7 @@ bool q_delete_dup(struct list_head *head)
     if (!head)
         return false;
     struct list_head **begin = &head->next, **end = &head->next;
-    element_t *stack[100000] = {NULL};
+    element_t *stack[10000] = {NULL};
     int index = -1;
     while (*begin != head && (*begin)->next != head) {
         element_t *b = list_entry(*begin, element_t, list);
@@ -161,14 +157,13 @@ bool q_delete_dup(struct list_head *head)
             *begin = *end;
             (*begin)->prev = prev;
             end = begin;
-            while (index >= 0) {
-                free(stack[index]->value);
-                free(stack[index--]);
-            }
         } else {
             begin = end;
+            index--;
         }
-        index = -1;
+    }
+    while (index >= 0) {
+        q_release_element(stack[index--]);
     }
     // https://leetcode.com/problems/remove-duplicates-from-sorted-list-ii/
     return true;
@@ -179,22 +174,13 @@ void q_swap(struct list_head *head)
 {
     if (!head)
         return;
-    struct list_head **indirect = &head->next;
-    while (*indirect != head && (*indirect)->next != head) {
-        struct list_head *prev = (*indirect)->prev;
-        struct list_head *old = *indirect, *old_next;
-
-        (*indirect) = (*indirect)->next;
-        (*indirect)->prev = prev;
-        prev->next = *indirect;
-        old_next = (*indirect)->next;
-        (*indirect)->next = old;
-        old->prev = *indirect;
-        old->next = old_next;
-        old_next->prev = old;
-        indirect = &old->next;
+    struct list_head *cur = head->next;
+    while (cur != head && cur->next != head) {
+        struct list_head *next = cur->next;
+        list_del(cur);
+        list_add(cur, next);
+        cur = cur->next;
     }
-
     // https://leetcode.com/problems/swap-nodes-in-pairs/
 }
 
