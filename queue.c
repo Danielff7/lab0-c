@@ -292,7 +292,7 @@ void q_sort(struct list_head *head)
 {
     if (!head || list_empty(head) || list_is_singular(head))
         return;
-    struct list_head *tail;
+    struct list_head *tail = head->prev;
     struct list_head *first = head->next;
     first->prev = NULL;
     head->prev->next = NULL;
