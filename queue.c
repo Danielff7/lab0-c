@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -242,8 +243,7 @@ void q_reverse(struct list_head *head)
 }
 
 static struct list_head *merge_two_list(struct list_head *l1,
-                                        struct list_head *l2,
-                                        struct list_head **tail)
+                                        struct list_head *l2)
 {
     struct list_head *head = NULL, *prev = NULL, **indirect = &head;
     for (struct list_head **node; l1 && l2; *node = (*node)->next) {
@@ -260,17 +260,12 @@ static struct list_head *merge_two_list(struct list_head *l1,
         indirect = &(*indirect)->next;
     }
 
-    *indirect = (l1) ? l1 : l2;
+    *indirect = (struct list_head *) ((uintptr_t) l1 | (uintptr_t) l2);
     (*indirect)->prev = prev;
-    while (*indirect && (*indirect)->next) {
-        indirect = &(*indirect)->next;
-    }
-    *tail = *indirect;
     return head;
 }
 
-static struct list_head *merge_sort(struct list_head *head,
-                                    struct list_head **tail)
+static struct list_head *merge_sort(struct list_head *head)
 {
     if (!head || !head->next)
         return head;
@@ -282,9 +277,9 @@ static struct list_head *merge_sort(struct list_head *head,
     struct list_head *new_head = *slow;
     *slow = NULL;
     new_head->prev = NULL;  // might not needed
-    struct list_head *sort_l = merge_sort(head, tail);
-    struct list_head *sort_r = merge_sort(new_head, tail);
-    return merge_two_list(sort_l, sort_r, tail);
+    struct list_head *sort_l = merge_sort(head);
+    struct list_head *sort_r = merge_sort(new_head);
+    return merge_two_list(sort_l, sort_r);
 }
 
 /* Sort elements of queue in ascending order */
@@ -292,13 +287,16 @@ void q_sort(struct list_head *head)
 {
     if (!head || list_empty(head) || list_is_singular(head))
         return;
-    struct list_head *tail = head->prev;
     struct list_head *first = head->next;
     first->prev = NULL;
     head->prev->next = NULL;
-    struct list_head *res = merge_sort(first, &tail);
+    struct list_head *res = merge_sort(first);
     head->next = res;
     res->prev = head;
-    head->prev = tail;
-    tail->next = head;
+    while (res && res->next) {
+        res = res->next;
+    }
+    head->prev = res;
+    if (res)
+        res->next = head;
 }
